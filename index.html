@@ -136,7 +136,6 @@
         <div class="incorrect">Невірно: <span id="incorrectCount">0</span></div>
     </div>
 
-    <!-- Модальне вікно -->
     <div class="modal" id="resultModal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -162,10 +161,10 @@
                 { english: "yearly", ukrainian: "щорічно" }
             ];
 
-            let currentWordIndex = 0;
-            let correctAnswers = 0;
-            let incorrectAnswers = 0;
-            let shuffledWords = [];
+            let currentWordIndex = 0; 
+            let correctAnswers = 0;   
+            let incorrectAnswers = 0; 
+            let shuffledWords = [];  
 
             function shuffleArray(array) {
                 for (let i = array.length - 1; i > 0; i--) {
@@ -176,7 +175,7 @@
             }
 
             function updateStats() {
-                $("#correctCount").text(correctAnswers);
+                $("#correctCount").text(correctAnswers); 
                 $("#incorrectCount").text(incorrectAnswers);
                 $("#stepCounter").text(`${currentWordIndex + 1}/10`);
             }
@@ -197,25 +196,25 @@
 
                 $("#levelMessage").text(levelMessage);
                 $("#finalCorrect").text(correctAnswers);
-                $("#resultModal").css("display", "flex");
+                $("#resultModal").css("display", "flex"); 
             }
 
             function startNewTest() {
                 currentWordIndex = 0;
                 correctAnswers = 0;
                 incorrectAnswers = 0;
-                shuffledWords = shuffleArray([...words]);
+                shuffledWords = shuffleArray([...words]); 
                 updateStats();
                 $("#wordCard").text("Натисніть, щоб почати");
-                $("#translationInput").val("");
+                $("#translationInput").val(""); 
                 $("#resultModal").css("display", "none");
             }
 
             $("#wordCard").click(function () {
                 if (currentWordIndex < 10) {
                     const currentWord = shuffledWords[currentWordIndex];
-                    $("#wordCard").text(currentWord.english);
-                    $("#translationInput").val("").focus();
+                    $("#wordCard").text(currentWord.english); 
+                    $("#translationInput").val("").focus(); 
                 }
             });
 
@@ -232,13 +231,13 @@
 
                 if (userAnswer === currentWord.ukrainian.toLowerCase()) {
                     correctAnswers++;
-                    $("#wordCard").css("background-color", "#d4edda");
+                    $("#wordCard").css("background-color", "#d4edda"); 
                     setTimeout(() => {
-                        $("#wordCard").css("background-color", "white");
+                        $("#wordCard").css("background-color", "white"); 
                     }, 500);
                 } else {
                     incorrectAnswers++;
-                    $("#wordCard").css("background-color", "#f8d7da");
+                    $("#wordCard").css("background-color", "#f8d7da"); 
                     setTimeout(() => {
                         $("#wordCard").css("background-color", "white");
                     }, 500);
@@ -254,7 +253,13 @@
                     showResultModal();
                 }
 
-                updateStats();
+                updateStats(); // Оновлюємо статистику
+            });
+
+            $("#translationInput").keypress(function (event) {
+                if (event.keyCode === 13) { 
+                    $("#checkBtn").click(); 
+                }
             });
 
             $(".close").click(function () {
@@ -263,12 +268,6 @@
 
             $("#restartBtn").click(function () {
                 startNewTest();
-            });
-
-            $("#translationInput").keypress(function (event) {
-                if (event.keyCode === 13) { // Enter key
-                    $("#checkBtn").click();
-                }
             });
 
             shuffledWords = shuffleArray([...words]);
