@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контроль вивчення мови</title>
+    <script src="http://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .card:hover {
+            background-color: #e9f5ff;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        input[type="text"] {
+            width: 200px;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        .step {
+            text-align: center;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+        }
+        .modal h2 {
+            color: #333;
+        }
+        .modal p {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        @media (max-width: 480px) {
+            .card {
+                padding: 20px;
+            }
+            input[type="text"] {
+                width: 150px;
+            }
+            .step {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card" id="wordCard">
+        Натисніть, щоб почати
+    </div>
+
+    <div class="step" id="stepCounter">0/10</div>
+
+    <div class="input-area">
+        <input type="text" id="translationInput" placeholder="Введіть переклад..." autocomplete="off">
+        <button id="checkBtn">Перевірити</button>
+    </div>
+
+    <div class="stats">
+        <div class="correct">Вірно: <span id="correctCount">0</span></div>
+        <div>Статистика</div>
+        <div class="incorrect">Невірно: <span id="incorrectCount">0</span></div>
+    </div>
+
+    <!-- Модальне вікно -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Результат тесту</h2>
+            <p id="levelMessage">Ваш рівень знань:</p>
+            <p id="finalStats">Правильних відповідей: <span id="finalCorrect">0</span> з 10</p>
+            <button id="restartBtn">Почати заново</button>
+        </div>
+    </div>
+
+    <script>
+        $(function () {
+            const words = [
+                { english: "always", ukrainian: "завжди" },
+                { english: "never", ukrainian: "ніколи" },
+                { english: "sometimes", ukrainian: "іноді" },
+                { english: "often", ukrainian: "часто" },
+                { english: "rarely", ukrainian: "рідко" },
+                { english: "usually", ukrainian: "зазвичай" },
+                { english: "daily", ukrainian: "щоденно" },
+                { english: "weekly", ukrainian: "щотижня" },
+                { english: "monthly", ukrainian: "щомісяця" },
+                { english: "yearly", ukrainian: "щорічно" }
+            ];
+
+            let currentWordIndex = 0;
+            let correctAnswers = 0;
+            let incorrectAnswers = 0;
+            let shuffledWords = [];
+
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            function updateStats() {
+                $("#correctCount").text(correctAnswers);
+                $("#incorrectCount").text(incorrectAnswers);
+                $("#stepCounter").text(`${currentWordIndex + 1}/10`);
+            }
+
+            function showResultModal() {
+                let levelMessage = "";
+                const percentage = (correctAnswers / 10) * 100;
+
+                if (percentage >= 90) {
+                    levelMessage = "Відмінний рівень! Ви дуже добре знаєте ці слова.";
+                } else if (percentage >= 70) {
+                    levelMessage = "Добрий рівень! Ви маєте гарне розуміння цих слів.";
+                } else if (percentage >= 50) {
+                    levelMessage = "Середній рівень. Потрібно трохи більше практики.";
+                } else {
+                    levelMessage = "Початковий рівень. Продовжуйте вчити та практикуватися!";
+                }
+
+                $("#levelMessage").text(levelMessage);
+                $("#finalCorrect").text(correctAnswers);
+                $("#resultModal").css("display", "flex");
+            }
+
+            function startNewTest() {
+                currentWordIndex = 0;
+                correctAnswers = 0;
+                incorrectAnswers = 0;
+                shuffledWords = shuffleArray([...words]);
+                updateStats();
+                $("#wordCard").text("Натисніть, щоб почати");
+                $("#translationInput").val("");
+                $("#resultModal").css("display", "none");
+            }
+
+            $("#wordCard").click(function () {
+                if (currentWordIndex < 10) {
+                    const currentWord = shuffledWords[currentWordIndex];
+                    $("#wordCard").text(currentWord.english);
+                    $("#translationInput").val("").focus();
+                }
+            });
+
+            $("#checkBtn").click(function () {
+                if (currentWordIndex >= 10) return;
+
+                const userAnswer = $("#translationInput").val().trim().toLowerCase();
+                const currentWord = shuffledWords[currentWordIndex];
+
+                if (userAnswer === "") {
+                    alert("Будь ласка, введіть переклад!");
+                    return;
+                }
+
+                if (userAnswer === currentWord.ukrainian.toLowerCase()) {
+                    correctAnswers++;
+                    $("#wordCard").css("background-color", "#d4edda");
+                    setTimeout(() => {
+                        $("#wordCard").css("background-color", "white");
+                    }, 500);
+                } else {
+                    incorrectAnswers++;
+                    $("#wordCard").css("background-color", "#f8d7da");
+                    setTimeout(() => {
+                        $("#wordCard").css("background-color", "white");
+                    }, 500);
+                }
+
+                currentWordIndex++;
+
+                if (currentWordIndex < 10) {
+                    const nextWord = shuffledWords[currentWordIndex];
+                    $("#wordCard").text(nextWord.english);
+                    $("#translationInput").val("").focus();
+                } else {
+                    showResultModal();
+                }
+
+                updateStats();
+            });
+
+            $(".close").click(function () {
+                $("#resultModal").css("display", "none");
+            });
+
+            $("#restartBtn").click(function () {
+                startNewTest();
+            });
+
+            $("#translationInput").keypress(function (event) {
+                if (event.keyCode === 13) { // Enter key
+                    $("#checkBtn").click();
+                }
+            });
+
+            shuffledWords = shuffleArray([...words]);
+            updateStats();
+        });
+    </script>
+</body>
+</html>
